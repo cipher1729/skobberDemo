@@ -1,5 +1,5 @@
 package com.routecar.database;
-
+import com.skobbler.ngx.sdktools.download.SKToolsDownloadItem;
 /**
  * Defines a resource that will be DOWNLOADED (e.g map, sound file)
  * @author CatalinM

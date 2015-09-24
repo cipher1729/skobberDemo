@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="ok_label">OK</string>
-    <string name="app_name">AndroidOpenSourceDemo</string>
+    <string name="app_name">RouteCar</string>
     <string name="options_group_map">Map</string>
     <string name="option_map_display">Map Display</string>
     <string name="option_map_styles">Map Styles</string>
