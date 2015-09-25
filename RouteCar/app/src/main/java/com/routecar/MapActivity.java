@@ -3,14 +3,19 @@ package com.routecar;
 import android.app.Activity;
 import android.content.Context;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.AutoCompleteTextView;
+import android.widget.SimpleAdapter;
 
+import com.routecar.UI.CustomAutoCompleteTextView;
 import com.routecar.application.DemoApplication;
 import com.routecar.util.DemoUtils;
-import com.skobbler.ngx.SKMaps;
+import com.routecar.util.PlacesTask;
 import com.skobbler.ngx.map.SKAnnotation;
 import com.skobbler.ngx.map.SKCoordinateRegion;
 import com.skobbler.ngx.map.SKMapCustomPOI;
@@ -22,6 +27,8 @@ import com.skobbler.ngx.map.SKPOICluster;
 import com.skobbler.ngx.map.SKScreenPoint;
 
 import java.nio.charset.MalformedInputException;
+import java.util.HashMap;
+import java.util.List;
 
 public class MapActivity extends Activity implements SKMapSurfaceListener{
 //app local variables go here
@@ -29,7 +36,9 @@ public class MapActivity extends Activity implements SKMapSurfaceListener{
     private SKMapSurfaceView mapView;
     private SKMapViewHolder mapViewGroup;
     DemoApplication app;
-
+    AutoCompleteTextView fromTextView, toTextView;
+    PlacesTask placesTask;
+    public static List<HashMap<String,String>> list;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -41,8 +50,58 @@ public class MapActivity extends Activity implements SKMapSurfaceListener{
         app = (DemoApplication) getApplication();
         mapViewGroup = (SKMapViewHolder) findViewById(R.id.view_group_map);
         mapViewGroup.setMapSurfaceListener(MapActivity.this);
+        fromTextView = (CustomAutoCompleteTextView)findViewById(R.id.fromText);
+        toTextView = (CustomAutoCompleteTextView)findViewById(R.id.toText);
+        addGUIListeners();
     }
 
+    private void addGUIListeners()
+    {
+        fromTextView.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+                placesTask = new PlacesTask();
+                placesTask.execute(s.toString());
+                String[] from = new String[] {"description"};
+                int[] to = new int[] { android.R.id.text1 };
+                if(list!=null) {
+                    SimpleAdapter adapter = new SimpleAdapter(MapActivity.this, list, android.R.layout.simple_list_item_1, from, to);
+                    fromTextView.setAdapter(adapter);
+                }
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+
+            }
+        });
+
+        toTextView.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+
+            }
+        });
+
+
+
+
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {

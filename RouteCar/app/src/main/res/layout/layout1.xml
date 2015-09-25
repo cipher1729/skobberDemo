@@ -2,50 +2,48 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent" android:layout_height="wrap_content"
     android:orientation="vertical">
-    <LinearLayout
-    android:layout_width="fill_parent"
-    android:layout_height="wrap_content">
-    <TextView android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="FROM:"></TextView>
-        <EditText
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:id="@+id/fromText"
-            android:layout_marginLeft="10dp"
-        />
-    </LinearLayout>
-    <LinearLayout
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content">
-        <TextView android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="TO:"></TextView>
-    <EditText
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:id="@+id/toText"
-        android:layout_marginLeft="24dp"
-        />
+        <LinearLayout
+         android:layout_width="fill_parent" android:layout_height="wrap_content">
+            <TextView android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="FROM:"></TextView>
+            <com.routecar.UI.CustomAutoCompleteTextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:id="@+id/fromText"
+                    android:layout_marginLeft="10dp" />
         </LinearLayout>
-    <LinearLayout
-        android:layout_width="match_parent" android:layout_height="wrap_content"
-        android:orientation="vertical">
-    <FrameLayout
-        android:id="@+id/frameLayout"
-        android:layout_width="fill_parent"
-        android:layout_height="fill_parent"
-        android:background="#80000000">
-        <com.skobbler.ngx.map.SKMapViewHolder
-            android:id="@+id/view_group_map"
+        <LinearLayout
             android:layout_width="fill_parent"
-            android:layout_height="fill_parent" />
-        <RelativeLayout
-            android:id="@+id/chess_board_background"
-            android:layout_width="fill_parent"
-            android:layout_height="fill_parent"
-            android:background="@drawable/map_background">
-        </RelativeLayout>
-    </FrameLayout>
+            android:layout_height="wrap_content">
+            <TextView android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="TO:"></TextView>
+            <com.routecar.UI.CustomAutoCompleteTextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/toText"
+            android:layout_marginLeft="24dp"
+            />
+        </LinearLayout>
+        <LinearLayout
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:orientation="vertical">
+            <FrameLayout
+                android:id="@+id/frameLayout"
+                android:layout_width="fill_parent"
+                android:layout_height="fill_parent"
+                android:background="#80000000">
+                <com.skobbler.ngx.map.SKMapViewHolder
+                    android:id="@+id/view_group_map"
+                    android:layout_width="fill_parent"
+                    android:layout_height="fill_parent" />
+                <RelativeLayout
+                    android:id="@+id/chess_board_background"
+                    android:layout_width="fill_parent"
+                    android:layout_height="fill_parent"
+                    android:background="@drawable/map_background">
+                </RelativeLayout>
+            </FrameLayout>
         </LinearLayout>
 </LinearLayout>
