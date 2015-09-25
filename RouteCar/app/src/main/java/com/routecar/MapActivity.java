@@ -1,3 +1,7 @@
+/*
+Need to set simMode to false somewhere
+
+ */
 package com.routecar;
 
 import android.app.Activity;
@@ -68,11 +72,12 @@ public class MapActivity extends Activity implements SKMapSurfaceListener, SKCur
     AutoCompleteTextView fromTextView, toTextView;
     PlacesTask placesTask;
     public static List<HashMap<String,String>> list;
-    Button navigateBtn, positionMeButton;
+    Button navigateBtn, positionMeButton, simulateBtn;
     public float fromLat, fromLong, toLat, toLong;
     private Integer cachedRouteId;
-    private boolean shouldCacheTheNextRoute, navigationInProgress=false;
+    private boolean shouldCacheTheNextRoute, navigationInProgress=false, simMode=false;
     private static final String TAG = "MapActivity";
+
 
 
     @Override
@@ -155,6 +160,7 @@ public class MapActivity extends Activity implements SKMapSurfaceListener, SKCur
         //button
         navigateBtn = (Button)findViewById(R.id.navigateBtn);
         positionMeButton= (Button)findViewById(R.id.position_me_button);
+        simulateBtn = (Button)findViewById(R.id.simulateBtn);
 
         //textviews
         fromTextView = (CustomAutoCompleteTextView)findViewById(R.id.fromText);
@@ -228,16 +234,16 @@ public class MapActivity extends Activity implements SKMapSurfaceListener, SKCur
                     // stop navigation if ongoing
                     stopNavigation();
                     navigateBtn.setVisibility(View.VISIBLE);
+                    simulateBtn.setVisibility(View.VISIBLE);
                     positionMeButton.setVisibility(View.VISIBLE);
-                }
-                else {
+                } else {
                     navigateBtn.setVisibility(View.GONE);
-
+                    simulateBtn.setVisibility(View.GONE);
                     positionMeButton.setVisibility(View.GONE);
                     fromTextView.setVisibility(View.GONE);
                     toTextView.setVisibility(View.GONE);
                     SKRouteManager.getInstance().clearCurrentRoute();
-                    launchRouteCalculation(new SKCoordinate(fromLong, fromLat), new SKCoordinate(-111.651302000,35.198283600));
+                    launchRouteCalculation(new SKCoordinate(fromLong, fromLat), new SKCoordinate(-111.651302000, 35.198283600));
                     new AlertDialog.Builder(MapActivity.this)
                             .setMessage("Choose the advice type")
                             .setCancelable(false)
@@ -285,6 +291,77 @@ public class MapActivity extends Activity implements SKMapSurfaceListener, SKCur
                 }
             }
         });
+
+
+        simulateBtn.setOnClickListener(new View.OnClickListener() {
+
+            @Override
+            public void onClick(View v) {
+                simMode= true;
+                if (navigationInProgress) {
+                    // stop navigation if ongoing
+                    stopNavigation();
+                    navigateBtn.setVisibility(View.VISIBLE);
+                    simulateBtn.setVisibility(View.VISIBLE);
+                    positionMeButton.setVisibility(View.VISIBLE);
+                }
+                else {
+                    navigateBtn.setVisibility(View.GONE);
+                    simulateBtn.setVisibility(View.GONE);
+                    positionMeButton.setVisibility(View.GONE);
+                    fromTextView.setVisibility(View.GONE);
+                    toTextView.setVisibility(View.GONE);
+                    SKRouteManager.getInstance().clearCurrentRoute();
+                    launchRouteCalculation(new SKCoordinate(fromLong, fromLat), new SKCoordinate(-111.651302000,35.198283600));
+                    new AlertDialog.Builder(MapActivity.this)
+                            .setMessage("Choose the advice type")
+                            .setCancelable(false)
+                            .setPositiveButton("Scout audio", new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int id) {
+                                    simulateBtn.setText(getResources().getString(R.string.stop_navigation));
+                                    setAdvicesAndStartNavigation(MapAdvices.AUDIO_FILES);
+                                }
+                            })
+                            .setNegativeButton("Text to speech", new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int id) {
+                                    if (textToSpeechEngine == null) {
+                                        Toast.makeText(MapActivity.this, "Initializing TTS engine",
+                                                Toast.LENGTH_LONG).show();
+                                        textToSpeechEngine = new TextToSpeech(MapActivity.this,
+                                                new TextToSpeech.OnInitListener() {
+                                                    @Override
+                                                    public void onInit(int status) {
+                                                        if (status == TextToSpeech.SUCCESS) {
+                                                            int result = textToSpeechEngine.setLanguage(Locale.ENGLISH);
+                                                            if (result == TextToSpeech.LANG_MISSING_DATA || result ==
+                                                                    TextToSpeech.LANG_NOT_SUPPORTED) {
+                                                                Toast.makeText(MapActivity.this,
+                                                                        "This Language is not supported",
+                                                                        Toast.LENGTH_LONG).show();
+                                                            }
+                                                        } else {
+                                                            Toast.makeText(MapActivity.this, getString(R.string.text_to_speech_engine_not_initialized),
+                                                                    Toast.LENGTH_SHORT).show();
+                                                        }
+                                                        simulateBtn.setText(getResources().getString(R.string
+                                                                .stop_navigation));
+                                                        setAdvicesAndStartNavigation(MapAdvices.TEXT_TO_SPEECH);
+                                                    }
+                                                });
+                                    } else {
+                                        simulateBtn.setText(getResources().getString(R.string.stop_navigation));
+                                        setAdvicesAndStartNavigation(MapAdvices.TEXT_TO_SPEECH);
+                                    }
+
+                                }
+                            })
+                            .show();
+
+                }
+            }
+        });
+
+
 
        positionMeButton.setOnClickListener(new View.OnClickListener(){
 
@@ -583,7 +660,8 @@ public class MapActivity extends Activity implements SKMapSurfaceListener, SKCur
         // get navigation settings object
         SKNavigationSettings navigationSettings = new SKNavigationSettings();
         // set the desired navigation settings
-        navigationSettings.setNavigationType(SKNavigationSettings.SKNavigationType.REAL);
+        if(simMode== false) navigationSettings.setNavigationType(SKNavigationSettings.SKNavigationType.REAL);
+        else navigationSettings.setNavigationType(SKNavigationSettings.SKNavigationType.SIMULATION);
         navigationSettings.setPositionerVerticalAlignment(-0.25f);
         navigationSettings.setShowRealGPSPositions(false);
         // get the navigation manager object
@@ -615,6 +693,7 @@ public class MapActivity extends Activity implements SKMapSurfaceListener, SKCur
 
         navigateBtn.setVisibility(View.VISIBLE);
         positionMeButton.setVisibility(View.VISIBLE);
+        simulateBtn.setVisibility(View.VISIBLE);
         SKRouteManager.getInstance().clearCurrentRoute();
          mapView.deleteAllAnnotationsAndCustomPOIs();
          if (navigationInProgress) {
