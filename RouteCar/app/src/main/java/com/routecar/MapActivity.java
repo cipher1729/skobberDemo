@@ -10,12 +10,15 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AutoCompleteTextView;
+import android.widget.Button;
 import android.widget.SimpleAdapter;
+import android.widget.Toast;
 
 import com.routecar.UI.CustomAutoCompleteTextView;
 import com.routecar.application.DemoApplication;
 import com.routecar.util.DemoUtils;
 import com.routecar.util.PlacesTask;
+import com.skobbler.ngx.SKMaps;
 import com.skobbler.ngx.map.SKAnnotation;
 import com.skobbler.ngx.map.SKCoordinateRegion;
 import com.skobbler.ngx.map.SKMapCustomPOI;
@@ -25,20 +28,28 @@ import com.skobbler.ngx.map.SKMapSurfaceView;
 import com.skobbler.ngx.map.SKMapViewHolder;
 import com.skobbler.ngx.map.SKPOICluster;
 import com.skobbler.ngx.map.SKScreenPoint;
+import com.skobbler.ngx.positioner.SKCurrentPositionListener;
+import com.skobbler.ngx.positioner.SKCurrentPositionProvider;
+import com.skobbler.ngx.positioner.SKPosition;
 
 import java.nio.charset.MalformedInputException;
 import java.util.HashMap;
 import java.util.List;
 
-public class MapActivity extends Activity implements SKMapSurfaceListener{
+public class MapActivity extends Activity implements SKMapSurfaceListener, SKCurrentPositionListener{
 //app local variables go here
 //
     private SKMapSurfaceView mapView;
     private SKMapViewHolder mapViewGroup;
+    private SKCurrentPositionProvider currentPositionProvider;
+    private SKPosition currentPosition;
     DemoApplication app;
     AutoCompleteTextView fromTextView, toTextView;
     PlacesTask placesTask;
     public static List<HashMap<String,String>> list;
+    Button navigateBtn, positionMeButton;
+    public float fromLat, fromLong, toLat, toLong;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -50,10 +61,22 @@ public class MapActivity extends Activity implements SKMapSurfaceListener{
         app = (DemoApplication) getApplication();
         mapViewGroup = (SKMapViewHolder) findViewById(R.id.view_group_map);
         mapViewGroup.setMapSurfaceListener(MapActivity.this);
+
+        //button
+        navigateBtn = (Button)findViewById(R.id.navigateBtn);
+        positionMeButton= (Button)findViewById(R.id.position_me_button);
+
+        //textviews
         fromTextView = (CustomAutoCompleteTextView)findViewById(R.id.fromText);
         toTextView = (CustomAutoCompleteTextView)findViewById(R.id.toText);
         fromTextView.setThreshold(4);
         toTextView.setThreshold(4);
+
+        //current Position
+        currentPositionProvider = new SKCurrentPositionProvider(this);
+        currentPositionProvider.setCurrentPositionListener(this);
+        currentPositionProvider.requestLocationUpdates(DemoUtils.hasGpsModule(this), DemoUtils.hasNetworkModule(this), false);
+
         addGUIListeners();
     }
 
@@ -107,9 +130,27 @@ public class MapActivity extends Activity implements SKMapSurfaceListener{
             }
         });
 
+        navigateBtn.setOnClickListener(new View.OnClickListener() {
 
+            @Override
+            public void onClick(View v) {
 
+            }
+        });
 
+       positionMeButton.setOnClickListener(new View.OnClickListener(){
+
+            @Override
+            public void onClick(View v) {
+                if (mapView != null && currentPosition != null) {
+                    mapView.centerMapOnCurrentPositionSmooth(17, 500);
+                } else {
+                    Toast.makeText(MapActivity.this, getResources().getString(R.string.no_position_available), Toast.LENGTH_SHORT)
+                            .show();
+                }
+
+            }
+        });
     }
 
     @Override
@@ -146,6 +187,10 @@ public class MapActivity extends Activity implements SKMapSurfaceListener{
         chessBackground.setVisibility(View.GONE);
         mapView = mapHolder.getMapSurfaceView();
         applySettingsOnMapView();
+
+        if (currentPosition != null) {
+            mapView.reportNewGPSPosition(currentPosition);
+        }
     }
 
     @Override
@@ -260,6 +305,12 @@ public class MapActivity extends Activity implements SKMapSurfaceListener{
         mapViewGroup.onResume();
     }
 
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        currentPositionProvider.stopLocationUpdates();
+        SKMaps.getInstance().destroySKMaps();
+    }
 
     /**
      * Customize the map view
@@ -272,5 +323,13 @@ public class MapActivity extends Activity implements SKMapSurfaceListener{
         mapView.getMapSettings().setInertiaRotatingEnabled(true);
         mapView.getMapSettings().setInertiaZoomingEnabled(true);
         mapView.getMapSettings().setInertiaPanningEnabled(true);
+    }
+
+    @Override
+    public void onCurrentPositionUpdate(SKPosition skPosition) {
+        currentPosition = skPosition;
+        if (mapView != null) {
+            mapView.reportNewGPSPosition(this.currentPosition);
+        }
     }
 }

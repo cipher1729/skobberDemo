@@ -26,6 +26,14 @@
             />
         </LinearLayout>
         <LinearLayout
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content">
+            <Button
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:id="@+id/navigateBtn"/>
+        </LinearLayout>
+        <LinearLayout
             android:layout_width="match_parent" android:layout_height="wrap_content"
             android:orientation="vertical">
             <FrameLayout
@@ -43,6 +51,12 @@
                     android:layout_height="fill_parent"
                     android:background="@drawable/map_background">
                 </RelativeLayout>
+                <Button
+                    android:id="@+id/position_me_button"
+                    style="@style/button_style"
+                    android:layout_alignParentLeft="true"
+                    android:layout_marginLeft="10dp"
+                    android:text="@string/label_position_me" />
             </FrameLayout>
         </LinearLayout>
 </LinearLayout>
