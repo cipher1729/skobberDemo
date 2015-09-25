@@ -240,8 +240,8 @@ public class MapActivity extends Activity implements SKMapSurfaceListener, SKCur
                 if (navigationInProgress) {
                     // stop navigation if ongoing
                     stopNavigation();
-                    navigateBtn.setVisibility(View.VISIBLE);
-                    simulateBtn.setVisibility(View.VISIBLE);
+                   // navigateBtn.setVisibility(View.VISIBLE);
+                   // simulateBtn.setVisibility(View.VISIBLE);
                     positionMeButton.setVisibility(View.VISIBLE);
                 } else {
                     //get text from text view
@@ -253,8 +253,8 @@ public class MapActivity extends Activity implements SKMapSurfaceListener, SKCur
                         e.printStackTrace();
                     }
 
-                    navigateBtn.setVisibility(View.GONE);
-                    simulateBtn.setVisibility(View.GONE);
+                   // navigateBtn.setVisibility(View.GONE);
+                   // simulateBtn.setVisibility(View.GONE);
                     positionMeButton.setVisibility(View.GONE);
                     fromTextView.setVisibility(View.GONE);
                     toTextView.setVisibility(View.GONE);
@@ -317,13 +317,13 @@ public class MapActivity extends Activity implements SKMapSurfaceListener, SKCur
                 if (navigationInProgress) {
                     // stop navigation if ongoing
                     stopNavigation();
-                    navigateBtn.setVisibility(View.VISIBLE);
-                    simulateBtn.setVisibility(View.VISIBLE);
+                    //navigateBtn.setVisibility(View.VISIBLE);
+                   // simulateBtn.setVisibility(View.VISIBLE);
                     positionMeButton.setVisibility(View.VISIBLE);
                 }
                 else {
-                    navigateBtn.setVisibility(View.GONE);
-                    simulateBtn.setVisibility(View.GONE);
+                    //navigateBtn.setVisibility(View.GONE);
+                   // simulateBtn.setVisibility(View.GONE);
                     positionMeButton.setVisibility(View.GONE);
                     fromTextView.setVisibility(View.GONE);
                     toTextView.setVisibility(View.GONE);
@@ -699,6 +699,7 @@ public class MapActivity extends Activity implements SKMapSurfaceListener, SKCur
         }
 
         SKNavigationManager.getInstance().stopNavigation();
+        navigateBtn.setText("Navigate");
 
     }
 
@@ -707,9 +708,9 @@ public class MapActivity extends Activity implements SKMapSurfaceListener, SKCur
      */
     private void clearMap() {
 
-        navigateBtn.setVisibility(View.VISIBLE);
+        //navigateBtn.setVisibility(View.VISIBLE);
         positionMeButton.setVisibility(View.VISIBLE);
-        simulateBtn.setVisibility(View.VISIBLE);
+        //simulateBtn.setVisibility(View.VISIBLE);
         SKRouteManager.getInstance().clearCurrentRoute();
          mapView.deleteAllAnnotationsAndCustomPOIs();
          if (navigationInProgress) {
