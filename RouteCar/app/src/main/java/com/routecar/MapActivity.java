@@ -8,6 +8,8 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.location.Address;
+import android.location.Geocoder;
 import android.os.Bundle;
 import android.speech.tts.TextToSpeech;
 import android.text.Editable;
@@ -55,6 +57,7 @@ import com.skobbler.ngx.routing.SKRouteSettings;
 import com.skobbler.ngx.sdktools.navigationui.SKToolsAdvicePlayer;
 import com.skobbler.ngx.util.SKLogging;
 
+import java.io.IOException;
 import java.nio.charset.MalformedInputException;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -77,7 +80,7 @@ public class MapActivity extends Activity implements SKMapSurfaceListener, SKCur
     private Integer cachedRouteId;
     private boolean shouldCacheTheNextRoute, navigationInProgress=false, simMode=false;
     private static final String TAG = "MapActivity";
-
+    private Geocoder geocoder;
 
 
     @Override
@@ -173,6 +176,10 @@ public class MapActivity extends Activity implements SKMapSurfaceListener, SKCur
         currentPositionProvider.setCurrentPositionListener(this);
         currentPositionProvider.requestLocationUpdates(DemoUtils.hasGpsModule(this), DemoUtils.hasNetworkModule(this), false);
 
+        //geocoder responses
+        geocoder = new Geocoder(MapActivity.this);
+
+
         addGUIListeners();
     }
 
@@ -237,13 +244,22 @@ public class MapActivity extends Activity implements SKMapSurfaceListener, SKCur
                     simulateBtn.setVisibility(View.VISIBLE);
                     positionMeButton.setVisibility(View.VISIBLE);
                 } else {
+                    //get text from text view
+                    try {
+                        List<Address> addresses = geocoder.getFromLocationName(toTextView.getText().toString(), 3);
+                        toLat= (float)addresses.get(0).getLatitude();
+                        toLong= (float)addresses.get(0).getLongitude();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+
                     navigateBtn.setVisibility(View.GONE);
                     simulateBtn.setVisibility(View.GONE);
                     positionMeButton.setVisibility(View.GONE);
                     fromTextView.setVisibility(View.GONE);
                     toTextView.setVisibility(View.GONE);
                     SKRouteManager.getInstance().clearCurrentRoute();
-                    launchRouteCalculation(new SKCoordinate(fromLong, fromLat), new SKCoordinate(-111.651302000, 35.198283600));
+                    launchRouteCalculation(new SKCoordinate(fromLong, fromLat), new SKCoordinate(toLong, toLat));
                     new AlertDialog.Builder(MapActivity.this)
                             .setMessage("Choose the advice type")
                             .setCancelable(false)
@@ -615,7 +631,7 @@ public class MapActivity extends Activity implements SKMapSurfaceListener, SKCur
         // set the number of routes to be calculated
         route.setNoOfRoutes(1);
         // set the route mode
-        route.setRouteMode(SKRouteSettings.SKRouteMode.EFFICIENT);
+        route.setRouteMode(SKRouteSettings.SKRouteMode.CAR_FASTEST);
         // set whether the route should be shown on the map after it's computed
         route.setRouteExposed(true);
         // set the route listener to be notified of route calculation
