@@ -15,6 +15,9 @@
         <meta-data
             android:name="com.skobbler.ngx.API_KEY"
             android:value="0ee06f8dd98cea6e16a5beed11884a35e7be564b5e8a917289db31c20091db72"/>
+        <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="AIzaSyDRmC_ch44GZvqcw7hj44L0RpyzV0z9ibg" />
         <activity
             android:name=".SplashActivity"
             android:configChanges="orientation|screenSize"

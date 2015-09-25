@@ -24,7 +24,7 @@ ParserTask parserTask;
         String data = "";
 
         // Obtain browser key from https://code.google.com/apis/console
-        String key = "key=AIzaSyBLoCM-QA5elaGyRH23hDqK96FY-AMbFLA";
+        String key = "key=AIzaSyDRmC_ch44GZvqcw7hj44L0RpyzV0z9ibg";
 
         String input="";
 

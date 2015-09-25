@@ -52,6 +52,8 @@ public class MapActivity extends Activity implements SKMapSurfaceListener{
         mapViewGroup.setMapSurfaceListener(MapActivity.this);
         fromTextView = (CustomAutoCompleteTextView)findViewById(R.id.fromText);
         toTextView = (CustomAutoCompleteTextView)findViewById(R.id.toText);
+        fromTextView.setThreshold(4);
+        toTextView.setThreshold(4);
         addGUIListeners();
     }
 
@@ -84,7 +86,14 @@ public class MapActivity extends Activity implements SKMapSurfaceListener{
         toTextView.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-
+                placesTask = new PlacesTask();
+                placesTask.execute(s.toString());
+                String[] from = new String[] {"description"};
+                int[] to = new int[] { android.R.id.text1 };
+                if(list!=null) {
+                    SimpleAdapter adapter = new SimpleAdapter(MapActivity.this, list, android.R.layout.simple_list_item_1, from, to);
+                    toTextView.setAdapter(adapter);
+                }
             }
 
             @Override

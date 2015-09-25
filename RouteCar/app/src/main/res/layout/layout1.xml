@@ -4,26 +4,25 @@
     android:orientation="vertical">
         <LinearLayout
          android:layout_width="fill_parent" android:layout_height="wrap_content">
-            <TextView android:layout_width="wrap_content"
+            <TextView android:layout_width="60dp"
                 android:layout_height="wrap_content"
-                android:text="FROM:"></TextView>
+                android:text="From:"></TextView>
             <com.routecar.UI.CustomAutoCompleteTextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:id="@+id/fromText"
-                    android:layout_marginLeft="10dp" />
+                android:layout_gravity="right"/>
         </LinearLayout>
         <LinearLayout
             android:layout_width="fill_parent"
             android:layout_height="wrap_content">
-            <TextView android:layout_width="wrap_content"
+            <TextView android:layout_width="60dp"
                 android:layout_height="wrap_content"
-                android:text="TO:"></TextView>
+                android:text="To:"></TextView>
             <com.routecar.UI.CustomAutoCompleteTextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:id="@+id/toText"
-            android:layout_marginLeft="24dp"
+            android:id="@+id/toText" android:layout_gravity="right"
             />
         </LinearLayout>
         <LinearLayout
