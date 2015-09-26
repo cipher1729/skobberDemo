@@ -1,6 +1,7 @@
 /*
 Need to set simMode to false somewhere
 Test the skout mode
+Fix display for multiple waypoints
  */
 package com.routecar;
 
@@ -19,11 +20,14 @@ import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
+import android.widget.LinearLayout;
 import android.widget.SimpleAdapter;
 import android.widget.Spinner;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.routecar.UI.CustomAutoCompleteTextView;
@@ -81,66 +85,11 @@ public class MapActivity extends Activity implements SKMapSurfaceListener, SKCur
     private static final String TAG = "MapActivity";
     private Geocoder geocoder;
 
+    //IDs for textViews
+    int textViewCount=0;
 
-    @Override
-    public void onDestinationReached() {
-        Toast.makeText(MapActivity.this, "Destination reached", Toast.LENGTH_SHORT).show();
-        // clear the map when reaching destination
-        clearMap();
-    }
-
-    @Override
-    public void onSignalNewAdviceWithInstruction(String instruction) {
-        SKLogging.writeLog(TAG, " onSignalNewAdviceWithInstruction " + instruction, Log.DEBUG);
-        textToSpeechEngine.speak(instruction, TextToSpeech.QUEUE_ADD, null);
-    }
-
-    @Override
-    public void onSignalNewAdviceWithAudioFiles(String[] audioFiles, boolean b) {
-        // a new navigation advice was received
-        SKLogging.writeLog(TAG, " onSignalNewAdviceWithAudioFiles " + Arrays.asList(audioFiles), Log.DEBUG);
-        SKToolsAdvicePlayer.getInstance().playAdvice(audioFiles, SKToolsAdvicePlayer.PRIORITY_NAVIGATION);
-    }
-
-    @Override
-    public void onSpeedExceededWithAudioFiles(String[] strings, boolean b) {
-
-    }
-
-    @Override
-    public void onSpeedExceededWithInstruction(String s, boolean b) {
-
-    }
-
-    @Override
-    public void onUpdateNavigationState(SKNavigationState skNavigationState) {
-
-    }
-
-    @Override
-    public void onReRoutingStarted() {
-
-    }
-
-    @Override
-    public void onFreeDriveUpdated(String s, String s1, SKNavigationState.SKStreetType skStreetType, double v, double v1) {
-
-    }
-
-    @Override
-    public void onViaPointReached(int i) {
-
-    }
-
-    @Override
-    public void onVisualAdviceChanged(boolean b, boolean b1, SKNavigationState skNavigationState) {
-
-    }
-
-    @Override
-    public void onTunnelEvent(boolean b) {
-
-    }
+    //UI
+    ViewGroup linearLayoutView;
 
     private enum MapAdvices {
         TEXT_TO_SPEECH, AUDIO_FILES
@@ -155,6 +104,24 @@ public class MapActivity extends Activity implements SKMapSurfaceListener, SKCur
         LayoutInflater inflater = (LayoutInflater) this.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         View view =  inflater.inflate(R.layout.layout1,null);
         setContentView(view);
+
+        //add from and to Views
+        linearLayoutView = (ViewGroup)findViewById(R.id.rootLinearLayout);
+        View textView = inflater.inflate(R.layout.pathview, null);
+        textView.setId(textViewCount);
+        linearLayoutView.addView(textView);
+        fromTextView = (CustomAutoCompleteTextView)linearLayoutView.findViewById(textViewCount).findViewById(R.id.waypointId);
+        fromTextView.setHint("From");
+        fromTextView.setThreshold(4);
+        //increment ID for toTextView
+        textViewCount++;
+        textView= inflater.inflate(R.layout.pathview, null);
+        textView.setId(textViewCount);
+        linearLayoutView.addView(textView);
+        toTextView = (CustomAutoCompleteTextView)linearLayoutView.findViewById(textViewCount).findViewById(R.id.waypointId);
+        toTextView.setHint("To");
+        toTextView.setThreshold(4);
+
         app = (DemoApplication) getApplication();
         mapViewGroup = (SKMapViewHolder) findViewById(R.id.view_group_map);
         mapViewGroup.setMapSurfaceListener(MapActivity.this);
@@ -165,10 +132,10 @@ public class MapActivity extends Activity implements SKMapSurfaceListener, SKCur
         simulateBtn = (Button)findViewById(R.id.simulateBtn);
 
         //textviews
-        fromTextView = (CustomAutoCompleteTextView)findViewById(R.id.fromText);
-        toTextView = (CustomAutoCompleteTextView)findViewById(R.id.toText);
-        fromTextView.setThreshold(4);
-        toTextView.setThreshold(4);
+       // fromTextView = (CustomAutoCompleteTextView)findViewById(R.id.fromText);
+        //toTextView = (CustomAutoCompleteTextView)findViewById(R.id.toText);
+        //fromTextView.setThreshold(4);
+        //toTextView.setThreshold(4);
 
         //current Position
         currentPositionProvider = new SKCurrentPositionProvider(this);
@@ -207,7 +174,9 @@ public class MapActivity extends Activity implements SKMapSurfaceListener, SKCur
 
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
-                toTextView.setVisibility(View.GONE);
+                //toTextView.setVisibility(View.GONE);
+               linearLayoutView.findViewById(textViewCount).setVisibility(View.GONE);
+
             }
 
             @Override
@@ -219,7 +188,7 @@ public class MapActivity extends Activity implements SKMapSurfaceListener, SKCur
         fromTextView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                toTextView.setVisibility(View.VISIBLE);
+                linearLayoutView.findViewById(textViewCount).setVisibility(View.VISIBLE);
             }
         });
 
@@ -238,7 +207,7 @@ public class MapActivity extends Activity implements SKMapSurfaceListener, SKCur
 
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
-                fromTextView.setVisibility(View.GONE);
+                linearLayoutView.findViewById(0).setVisibility(View.GONE);
             }
 
             @Override
@@ -251,7 +220,7 @@ public class MapActivity extends Activity implements SKMapSurfaceListener, SKCur
        toTextView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                fromTextView.setVisibility(View.VISIBLE);
+                linearLayoutView.findViewById(0).setVisibility(View.VISIBLE);
             }
         });
 
@@ -278,8 +247,8 @@ public class MapActivity extends Activity implements SKMapSurfaceListener, SKCur
                    // navigateBtn.setVisibility(View.GONE);
                    // simulateBtn.setVisibility(View.GONE);
                     positionMeButton.setVisibility(View.GONE);
-                    fromTextView.setVisibility(View.GONE);
-                    toTextView.setVisibility(View.GONE);
+                    linearLayoutView.findViewById(textViewCount).setVisibility(View.GONE);
+                    linearLayoutView.findViewById(0).setVisibility(View.GONE);
                     SKRouteManager.getInstance().clearCurrentRoute();
                     launchRouteCalculation(new SKCoordinate(fromLong, fromLat), new SKCoordinate(toLong, toLat));
                     new AlertDialog.Builder(MapActivity.this)
@@ -342,13 +311,15 @@ public class MapActivity extends Activity implements SKMapSurfaceListener, SKCur
                     //navigateBtn.setVisibility(View.VISIBLE);
                    // simulateBtn.setVisibility(View.VISIBLE);
                     positionMeButton.setVisibility(View.VISIBLE);
+                    linearLayoutView.findViewById(0).setVisibility(View.VISIBLE);
+                    linearLayoutView.findViewById(textViewCount).setVisibility(View.VISIBLE);
                 }
                 else {
                     //navigateBtn.setVisibility(View.GONE);
                    // simulateBtn.setVisibility(View.GONE);
                     positionMeButton.setVisibility(View.GONE);
-                    fromTextView.setVisibility(View.GONE);
-                    toTextView.setVisibility(View.GONE);
+                    linearLayoutView.findViewById(textViewCount).setVisibility(View.GONE);
+                    linearLayoutView.findViewById(0).setVisibility(View.GONE);
                     SKRouteManager.getInstance().clearCurrentRoute();
                     launchRouteCalculation(new SKCoordinate(fromLong, fromLat), new SKCoordinate(-111.651302000,35.198283600));
                     new AlertDialog.Builder(MapActivity.this)
@@ -413,6 +384,66 @@ public class MapActivity extends Activity implements SKMapSurfaceListener, SKCur
 
             }
         });
+    }
+
+    @Override
+    public void onDestinationReached() {
+        Toast.makeText(MapActivity.this, "Destination reached", Toast.LENGTH_SHORT).show();
+        // clear the map when reaching destination
+        clearMap();
+    }
+
+    @Override
+    public void onSignalNewAdviceWithInstruction(String instruction) {
+        SKLogging.writeLog(TAG, " onSignalNewAdviceWithInstruction " + instruction, Log.DEBUG);
+        textToSpeechEngine.speak(instruction, TextToSpeech.QUEUE_ADD, null);
+    }
+
+    @Override
+    public void onSignalNewAdviceWithAudioFiles(String[] audioFiles, boolean b) {
+        // a new navigation advice was received
+        SKLogging.writeLog(TAG, " onSignalNewAdviceWithAudioFiles " + Arrays.asList(audioFiles), Log.DEBUG);
+        SKToolsAdvicePlayer.getInstance().playAdvice(audioFiles, SKToolsAdvicePlayer.PRIORITY_NAVIGATION);
+    }
+
+    @Override
+    public void onSpeedExceededWithAudioFiles(String[] strings, boolean b) {
+
+    }
+
+    @Override
+    public void onSpeedExceededWithInstruction(String s, boolean b) {
+
+    }
+
+    @Override
+    public void onUpdateNavigationState(SKNavigationState skNavigationState) {
+
+    }
+
+    @Override
+    public void onReRoutingStarted() {
+
+    }
+
+    @Override
+    public void onFreeDriveUpdated(String s, String s1, SKNavigationState.SKStreetType skStreetType, double v, double v1) {
+
+    }
+
+    @Override
+    public void onViaPointReached(int i) {
+
+    }
+
+    @Override
+    public void onVisualAdviceChanged(boolean b, boolean b1, SKNavigationState skNavigationState) {
+
+    }
+
+    @Override
+    public void onTunnelEvent(boolean b) {
+
     }
 
     @Override
@@ -730,7 +761,6 @@ public class MapActivity extends Activity implements SKMapSurfaceListener, SKCur
     private void clearMap() {
 
         //navigateBtn.setVisibility(View.VISIBLE);
-        positionMeButton.setVisibility(View.VISIBLE);
         //simulateBtn.setVisibility(View.VISIBLE);
         SKRouteManager.getInstance().clearCurrentRoute();
          mapView.deleteAllAnnotationsAndCustomPOIs();

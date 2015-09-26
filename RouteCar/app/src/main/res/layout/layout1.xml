@@ -2,23 +2,11 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent" android:layout_height="wrap_content"
     android:orientation="vertical">
-        <LinearLayout
-         android:layout_width="fill_parent" android:layout_height="wrap_content">
-
-            <com.routecar.UI.CustomAutoCompleteTextView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:id="@+id/fromText"
-                android:layout_weight="1"
-                android:hint="From:"/>
-
-            <com.routecar.UI.CustomAutoCompleteTextView
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:id="@+id/toText" android:layout_weight="1"
-                android:hint="To:"
-            />
-        </LinearLayout>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/rootLinearLayout"
+        android:orientation="vertical">
         <LinearLayout
             android:layout_width="fill_parent"
             android:layout_height="wrap_content">
@@ -35,6 +23,7 @@
                 android:text="Simulate"
                 android:layout_weight="1"/>
         </LinearLayout>
+    </LinearLayout>
         <LinearLayout
             android:layout_width="match_parent" android:layout_height="wrap_content"
             android:orientation="vertical">
