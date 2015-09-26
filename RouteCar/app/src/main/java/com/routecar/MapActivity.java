@@ -36,6 +36,7 @@ import com.routecar.util.DemoUtils;
 import com.routecar.util.PlacesTask;
 import com.skobbler.ngx.SKCoordinate;
 import com.skobbler.ngx.SKMaps;
+import com.skobbler.ngx.map.SKAnimationSettings;
 import com.skobbler.ngx.map.SKAnnotation;
 import com.skobbler.ngx.map.SKCoordinateRegion;
 import com.skobbler.ngx.map.SKMapCustomPOI;
@@ -686,8 +687,17 @@ public class MapActivity extends Activity implements SKMapSurfaceListener, SKCur
         SKRouteSettings route = new SKRouteSettings();
         List<SKViaPoint> viaList = new ArrayList<>();
 
-        viaList.add(new SKViaPoint(0,new SKCoordinate(-111.957165,33.303222)));
+        viaList.add(new SKViaPoint(0, new SKCoordinate(-111.957165, 33.303222)));
         route.setViaPoints(viaList);
+
+        //draw point on waypoint
+        SKAnnotation annotation = new SKAnnotation(0);
+        annotation.setUniqueID(4);
+        annotation.setAnnotationType(SKAnnotation.SK_ANNOTATION_TYPE_MARKER);
+        annotation.setLocation(new SKCoordinate(-111.957165,33.303222));
+        annotation.setMininumZoomLevel(5);
+        mapView.addAnnotation(annotation,
+                SKAnimationSettings.ANIMATION_NONE);
 
         // set start and destination points
         route.setStartCoordinate(new SKCoordinate(currentPosition.getLongitude(),currentPosition.getLatitude()));
