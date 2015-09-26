@@ -1,6 +1,6 @@
 /*
 Need to set simMode to false somewhere
-
+Test the skout mode
  */
 package com.routecar;
 
@@ -19,6 +19,7 @@ import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.SimpleAdapter;
@@ -56,17 +57,15 @@ import com.skobbler.ngx.routing.SKRouteManager;
 import com.skobbler.ngx.routing.SKRouteSettings;
 import com.skobbler.ngx.sdktools.navigationui.SKToolsAdvicePlayer;
 import com.skobbler.ngx.util.SKLogging;
-
 import java.io.IOException;
-import java.nio.charset.MalformedInputException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 
 public class MapActivity extends Activity implements SKMapSurfaceListener, SKCurrentPositionListener, SKRouteListener, SKNavigationListener{
+
 //app local variables go here
-//
     private SKMapSurfaceView mapView;
     private SKMapViewHolder mapViewGroup;
     private SKCurrentPositionProvider currentPositionProvider;
@@ -185,14 +184,22 @@ public class MapActivity extends Activity implements SKMapSurfaceListener, SKCur
 
     private void addGUIListeners()
     {
+        /*fromTextView.setOnClickListener(new View.OnClickListener()
+        {
+
+            @Override
+            public void onClick(View v) {
+                toTextView.setVisibility(View.GONE);
+            }
+        });*/
         fromTextView.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
                 placesTask = new PlacesTask();
                 placesTask.execute(s.toString());
-                String[] from = new String[] {"description"};
-                int[] to = new int[] { android.R.id.text1 };
-                if(list!=null) {
+                String[] from = new String[]{"description"};
+                int[] to = new int[]{android.R.id.text1};
+                if (list != null) {
                     SimpleAdapter adapter = new SimpleAdapter(MapActivity.this, list, android.R.layout.simple_list_item_1, from, to);
                     fromTextView.setAdapter(adapter);
                 }
@@ -200,7 +207,7 @@ public class MapActivity extends Activity implements SKMapSurfaceListener, SKCur
 
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
-
+                toTextView.setVisibility(View.GONE);
             }
 
             @Override
@@ -209,14 +216,21 @@ public class MapActivity extends Activity implements SKMapSurfaceListener, SKCur
             }
         });
 
+        fromTextView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                toTextView.setVisibility(View.VISIBLE);
+            }
+        });
+
         toTextView.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
                 placesTask = new PlacesTask();
                 placesTask.execute(s.toString());
-                String[] from = new String[] {"description"};
-                int[] to = new int[] { android.R.id.text1 };
-                if(list!=null) {
+                String[] from = new String[]{"description"};
+                int[] to = new int[]{android.R.id.text1};
+                if (list != null) {
                     SimpleAdapter adapter = new SimpleAdapter(MapActivity.this, list, android.R.layout.simple_list_item_1, from, to);
                     toTextView.setAdapter(adapter);
                 }
@@ -224,12 +238,20 @@ public class MapActivity extends Activity implements SKMapSurfaceListener, SKCur
 
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
-
+                fromTextView.setVisibility(View.GONE);
             }
 
             @Override
             public void afterTextChanged(Editable s) {
+                Log.d("", "");
+            }
+        });
 
+
+       toTextView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                fromTextView.setVisibility(View.VISIBLE);
             }
         });
 
@@ -334,7 +356,7 @@ public class MapActivity extends Activity implements SKMapSurfaceListener, SKCur
                             .setCancelable(false)
                             .setPositiveButton("Scout audio", new DialogInterface.OnClickListener() {
                                 public void onClick(DialogInterface dialog, int id) {
-                                    simulateBtn.setText(getResources().getString(R.string.stop_navigation));
+                                    simulateBtn.setText("Stop simulation");
                                     setAdvicesAndStartNavigation(MapAdvices.AUDIO_FILES);
                                 }
                             })
@@ -359,13 +381,12 @@ public class MapActivity extends Activity implements SKMapSurfaceListener, SKCur
                                                             Toast.makeText(MapActivity.this, getString(R.string.text_to_speech_engine_not_initialized),
                                                                     Toast.LENGTH_SHORT).show();
                                                         }
-                                                        simulateBtn.setText(getResources().getString(R.string
-                                                                .stop_navigation));
+                                                        simulateBtn.setText("Stop simulation");
                                                         setAdvicesAndStartNavigation(MapAdvices.TEXT_TO_SPEECH);
                                                     }
                                                 });
                                     } else {
-                                        simulateBtn.setText(getResources().getString(R.string.stop_navigation));
+                                        simulateBtn.setText("Stop simulation");
                                         setAdvicesAndStartNavigation(MapAdvices.TEXT_TO_SPEECH);
                                     }
 
@@ -699,8 +720,8 @@ public class MapActivity extends Activity implements SKMapSurfaceListener, SKCur
         }
 
         SKNavigationManager.getInstance().stopNavigation();
-        navigateBtn.setText("Navigate");
-
+        if(simMode==false )navigateBtn.setText("Navigate");
+        else simulateBtn.setText("Simulate");
     }
 
     /**
@@ -717,7 +738,6 @@ public class MapActivity extends Activity implements SKMapSurfaceListener, SKCur
                     // stop navigation if ongoing
          stopNavigation();
          }
-
 
         positionMeButton.setVisibility(View.VISIBLE);
 

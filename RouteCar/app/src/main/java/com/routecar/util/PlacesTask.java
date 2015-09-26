@@ -41,7 +41,7 @@ ParserTask parserTask;
         String sensor = "sensor=false";
 
         // Building the parameters to the web service
-        String parameters = input+"&"+types+"&"+sensor+"&"+key;
+        String parameters = input+"&"+sensor+"&"+key;
 
         // Output format
         String output = "json";
