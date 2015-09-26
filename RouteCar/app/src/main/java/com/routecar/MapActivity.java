@@ -236,6 +236,8 @@ public class MapActivity extends Activity implements SKMapSurfaceListener, SKCur
                    // navigateBtn.setVisibility(View.VISIBLE);
                    // simulateBtn.setVisibility(View.VISIBLE);
                     positionMeButton.setVisibility(View.VISIBLE);
+                    linearLayoutView.findViewById(0).setVisibility(View.VISIBLE);
+                    linearLayoutView.findViewById(textViewCount).setVisibility(View.VISIBLE);
                 } else {
                     //get text from text view
                     try {
