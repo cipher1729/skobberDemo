@@ -59,9 +59,11 @@ import com.skobbler.ngx.routing.SKRouteJsonAnswer;
 import com.skobbler.ngx.routing.SKRouteListener;
 import com.skobbler.ngx.routing.SKRouteManager;
 import com.skobbler.ngx.routing.SKRouteSettings;
+import com.skobbler.ngx.routing.SKViaPoint;
 import com.skobbler.ngx.sdktools.navigationui.SKToolsAdvicePlayer;
 import com.skobbler.ngx.util.SKLogging;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -321,7 +323,10 @@ public class MapActivity extends Activity implements SKMapSurfaceListener, SKCur
                     linearLayoutView.findViewById(textViewCount).setVisibility(View.GONE);
                     linearLayoutView.findViewById(0).setVisibility(View.GONE);
                     SKRouteManager.getInstance().clearCurrentRoute();
+
+
                     launchRouteCalculation(new SKCoordinate(fromLong, fromLat), new SKCoordinate(-111.651302000,35.198283600));
+
                     new AlertDialog.Builder(MapActivity.this)
                             .setMessage("Choose the advice type")
                             .setCancelable(false)
@@ -677,8 +682,13 @@ public class MapActivity extends Activity implements SKMapSurfaceListener, SKCur
         clearRouteFromCache();
         // get a route object and populate it with the desired properties
         SKRouteSettings route = new SKRouteSettings();
+        List<SKViaPoint> viaList = new ArrayList<>();
+
+        viaList.add(new SKViaPoint(0,new SKCoordinate(-111.957165,33.303222)));
+        route.setViaPoints(viaList);
+
         // set start and destination points
-        route.setStartCoordinate(startPoint);
+        route.setStartCoordinate(new SKCoordinate(currentPosition.getLongitude(),currentPosition.getLatitude()));
         route.setDestinationCoordinate(destinationPoint);
         // set the number of routes to be calculated
         route.setNoOfRoutes(1);
