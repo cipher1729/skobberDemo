@@ -794,9 +794,9 @@ public class MapActivity extends Activity implements SKMapSurfaceListener, SKCur
             AutoCompleteTextView autoCompleteTextView= (AutoCompleteTextView)linearLayoutView.findViewById(i).findViewById(R.id.waypointId);
             String locationString = autoCompleteTextView.getText().toString();
             SKCoordinate viaLocation= Helper.convertStringToCoord(locationString,context);
-            viaList.add(new SKViaPoint(viaPointNumber++,viaLocation));
+            viaList.add(new SKViaPoint(viaPointNumber,viaLocation));
             SKAnnotation annotation = new SKAnnotation(0);
-            annotation.setUniqueID(4);
+            annotation.setUniqueID(viaPointNumber++);
             annotation.setAnnotationType(SKAnnotation.SK_ANNOTATION_TYPE_MARKER);
             annotation.setLocation(viaLocation);
             annotation.setMininumZoomLevel(5);
@@ -861,11 +861,14 @@ public class MapActivity extends Activity implements SKMapSurfaceListener, SKCur
         // get the navigation manager object
         SKNavigationManager navigationManager = SKNavigationManager.getInstance();
         navigationManager.setMapView(mapView);
+        applySettingsOnMapView();
+
         // set listener for navigation events
         navigationManager.setNavigationListener(this);
 
         // start navigating using the settings
         navigationManager.startNavigation(navigationSettings);
+
         navigationInProgress = true;
     }
 
