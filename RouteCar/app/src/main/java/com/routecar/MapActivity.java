@@ -1,7 +1,7 @@
 /*
 Need to set simMode to false somewhere
 Test the skout mode
-Fix display for multiple waypoints
+Figure out way to include current location
  */
 package com.routecar;
 
@@ -9,8 +9,6 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
-import android.location.Address;
-import android.location.Geocoder;
 import android.os.Bundle;
 import android.speech.tts.TextToSpeech;
 import android.text.Editable;
@@ -33,6 +31,7 @@ import android.widget.Toast;
 import com.routecar.UI.CustomAutoCompleteTextView;
 import com.routecar.application.DemoApplication;
 import com.routecar.util.DemoUtils;
+import com.routecar.util.Helper;
 import com.routecar.util.PlacesTask;
 import com.skobbler.ngx.SKCoordinate;
 import com.skobbler.ngx.SKMaps;
@@ -86,8 +85,8 @@ public class MapActivity extends Activity implements SKMapSurfaceListener, SKCur
     private Integer cachedRouteId;
     private boolean shouldCacheTheNextRoute, navigationInProgress=false, simMode=false;
     private static final String TAG = "MapActivity";
-    private Geocoder geocoder;
     List<CustomAutoCompleteTextView> waypointList;
+    Context context;
 
     //IDs for textViews
     int textViewCount=0;
@@ -96,6 +95,7 @@ public class MapActivity extends Activity implements SKMapSurfaceListener, SKCur
     ViewGroup linearLayoutView;
     LayoutInflater inflater;
     View textView;
+
 
     private enum MapAdvices {
         TEXT_TO_SPEECH, AUDIO_FILES
@@ -149,8 +149,8 @@ public class MapActivity extends Activity implements SKMapSurfaceListener, SKCur
         currentPositionProvider.setCurrentPositionListener(this);
         currentPositionProvider.requestLocationUpdates(DemoUtils.hasGpsModule(this), DemoUtils.hasNetworkModule(this), false);
 
-        //geocoder responses
-        geocoder = new Geocoder(MapActivity.this);
+
+        context = MapActivity.this;
 
 
         addGUIListeners();
@@ -181,7 +181,7 @@ public class MapActivity extends Activity implements SKMapSurfaceListener, SKCur
 
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
-                //toTextView.setVisibility(View.GONE);
+                //remove the from textView
                linearLayoutView.findViewById(textViewCount).setVisibility(View.GONE);
 
             }
@@ -214,6 +214,7 @@ public class MapActivity extends Activity implements SKMapSurfaceListener, SKCur
 
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
+                //remove the To TextView
                 linearLayoutView.findViewById(0).setVisibility(View.GONE);
             }
 
@@ -240,24 +241,23 @@ public class MapActivity extends Activity implements SKMapSurfaceListener, SKCur
                     stopNavigation();
                    // navigateBtn.setVisibility(View.VISIBLE);
                    // simulateBtn.setVisibility(View.VISIBLE);
-                    positionMeButton.setVisibility(View.VISIBLE);
-                    linearLayoutView.findViewById(0).setVisibility(View.VISIBLE);
-                    linearLayoutView.findViewById(textViewCount).setVisibility(View.VISIBLE);
+                    showAllUI();
                 } else {
-                    //get text from text view
-                    try {
-                        List<Address> addresses = geocoder.getFromLocationName(toTextView.getText().toString(), 3);
-                        toLat= (float)addresses.get(0).getLatitude();
-                        toLong= (float)addresses.get(0).getLongitude();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
+
+                        //get To coordinates from editText
+                        SKCoordinate skCoordinate= Helper.convertStringToCoord(toTextView.getText().toString(), context);
+                        toLat= (float)skCoordinate.getLatitude();
+                        toLong= (float)skCoordinate.getLongitude();
+
+                        //got From coordinates from editText
+                        skCoordinate= Helper.convertStringToCoord(fromTextView.getText().toString(), context);
+                        fromLat= (float)skCoordinate.getLatitude();
+                        fromLong= (float)skCoordinate.getLongitude();
 
                    // navigateBtn.setVisibility(View.GONE);
                    // simulateBtn.setVisibility(View.GONE);
-                    positionMeButton.setVisibility(View.GONE);
-                    linearLayoutView.findViewById(textViewCount).setVisibility(View.GONE);
-                    linearLayoutView.findViewById(0).setVisibility(View.GONE);
+                    hideAllUI();
+
                     SKRouteManager.getInstance().clearCurrentRoute();
                     launchRouteCalculation(new SKCoordinate(fromLong, fromLat), new SKCoordinate(toLong, toLat));
                     new AlertDialog.Builder(MapActivity.this)
@@ -398,7 +398,23 @@ public class MapActivity extends Activity implements SKMapSurfaceListener, SKCur
         });
     }
 
+    private void hideAllUI()
+    {
+        for(int i=0;i<=textViewCount;i++)
+        {
+            linearLayoutView.findViewById(i).setVisibility(View.GONE);
+        }
+        positionMeButton.setVisibility(View.GONE);
+    }
 
+    private void showAllUI()
+    {
+        for(int i=0;i<=textViewCount;i++)
+        {
+            linearLayoutView.findViewById(i).setVisibility(View.VISIBLE);
+        }
+        positionMeButton.setVisibility(View.VISIBLE);
+    }
     private void setOnClickListenerForPlus(View v)
     {
         v.setOnClickListener(new View.OnClickListener() {
@@ -441,8 +457,8 @@ public class MapActivity extends Activity implements SKMapSurfaceListener, SKCur
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
                 //linearLayoutView.findViewById(0).setVisibility(View.GONE);
+
                 //make other textviews invisible
-                //Need to do
                 for(int i=0;i<=textViewCount;i++)
                 {
                     if (!(linearLayoutView.findViewById(i).findViewById(R.id.waypointId).hasFocus()))
@@ -702,9 +718,7 @@ public class MapActivity extends Activity implements SKMapSurfaceListener, SKCur
     @Override
     public void onCurrentPositionUpdate(SKPosition skPosition) {
         currentPosition = skPosition;
-        fromLat= (float)currentPosition.getLatitude();
-        fromLong= (float)currentPosition.getLongitude();
-        if (mapView != null) {
+         if (mapView != null) {
             mapView.reportNewGPSPosition(this.currentPosition);
         }
     }
@@ -765,23 +779,33 @@ public class MapActivity extends Activity implements SKMapSurfaceListener, SKCur
         clearRouteFromCache();
         // get a route object and populate it with the desired properties
         SKRouteSettings route = new SKRouteSettings();
-        List<SKViaPoint> viaList = new ArrayList<>();
 
-        viaList.add(new SKViaPoint(0, new SKCoordinate(-111.957165, 33.303222)));
-        route.setViaPoints(viaList);
-
-        //draw point on waypoint
-        SKAnnotation annotation = new SKAnnotation(0);
-        annotation.setUniqueID(4);
-        annotation.setAnnotationType(SKAnnotation.SK_ANNOTATION_TYPE_MARKER);
-        annotation.setLocation(new SKCoordinate(-111.957165,33.303222));
-        annotation.setMininumZoomLevel(5);
-        mapView.addAnnotation(annotation,
-                SKAnimationSettings.ANIMATION_NONE);
 
         // set start and destination points
         route.setStartCoordinate(new SKCoordinate(currentPosition.getLongitude(),currentPosition.getLatitude()));
         route.setDestinationCoordinate(destinationPoint);
+
+        //handle waypoints
+        List<SKViaPoint> viaList = new ArrayList<>();
+        int viaPointNumber=0;
+
+        for(int i=2;i<=textViewCount;i++)
+        {
+            AutoCompleteTextView autoCompleteTextView= (AutoCompleteTextView)linearLayoutView.findViewById(i).findViewById(R.id.waypointId);
+            String locationString = autoCompleteTextView.getText().toString();
+            SKCoordinate viaLocation= Helper.convertStringToCoord(locationString,context);
+            viaList.add(new SKViaPoint(viaPointNumber++,viaLocation));
+            SKAnnotation annotation = new SKAnnotation(0);
+            annotation.setUniqueID(4);
+            annotation.setAnnotationType(SKAnnotation.SK_ANNOTATION_TYPE_MARKER);
+            annotation.setLocation(viaLocation);
+            annotation.setMininumZoomLevel(5);
+            mapView.addAnnotation(annotation,SKAnimationSettings.ANIMATION_NONE);
+
+        }
+        route.setViaPoints(viaList);
+
+
         // set the number of routes to be calculated
         route.setNoOfRoutes(1);
         // set the route mode
