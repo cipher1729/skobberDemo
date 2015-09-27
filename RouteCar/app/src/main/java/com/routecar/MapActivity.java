@@ -87,12 +87,15 @@ public class MapActivity extends Activity implements SKMapSurfaceListener, SKCur
     private boolean shouldCacheTheNextRoute, navigationInProgress=false, simMode=false;
     private static final String TAG = "MapActivity";
     private Geocoder geocoder;
+    List<CustomAutoCompleteTextView> waypointList;
 
     //IDs for textViews
     int textViewCount=0;
 
     //UI
     ViewGroup linearLayoutView;
+    LayoutInflater inflater;
+    View textView;
 
     private enum MapAdvices {
         TEXT_TO_SPEECH, AUDIO_FILES
@@ -104,18 +107,20 @@ public class MapActivity extends Activity implements SKMapSurfaceListener, SKCur
         super.onCreate(savedInstanceState);
         //SKMaps.getInstance().initializeSKMaps(this, null);
         DemoUtils.initializeLibrary(MapActivity.this);
-        LayoutInflater inflater = (LayoutInflater) this.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        inflater = (LayoutInflater) this.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         View view =  inflater.inflate(R.layout.layout1,null);
         setContentView(view);
 
         //add from and to Views
         linearLayoutView = (ViewGroup)findViewById(R.id.rootLinearLayout);
-        View textView = inflater.inflate(R.layout.pathview, null);
+        textView = inflater.inflate(R.layout.pathview, null);
         textView.setId(textViewCount);
         linearLayoutView.addView(textView);
         fromTextView = (CustomAutoCompleteTextView)linearLayoutView.findViewById(textViewCount).findViewById(R.id.waypointId);
         fromTextView.setHint("From");
         fromTextView.setThreshold(4);
+        View plusSignView = linearLayoutView.findViewById(textViewCount).findViewById(R.id.plusSignId);
+        plusSignView.setVisibility(View.INVISIBLE);
         //increment ID for toTextView
         textViewCount++;
         textView= inflater.inflate(R.layout.pathview, null);
@@ -124,6 +129,8 @@ public class MapActivity extends Activity implements SKMapSurfaceListener, SKCur
         toTextView = (CustomAutoCompleteTextView)linearLayoutView.findViewById(textViewCount).findViewById(R.id.waypointId);
         toTextView.setHint("To");
         toTextView.setThreshold(4);
+        setOnClickListenerForPlus(linearLayoutView.findViewById(textViewCount).findViewById(R.id.plusSignId));
+
 
         app = (DemoApplication) getApplication();
         mapViewGroup = (SKMapViewHolder) findViewById(R.id.view_group_map);
@@ -134,11 +141,8 @@ public class MapActivity extends Activity implements SKMapSurfaceListener, SKCur
         positionMeButton= (Button)findViewById(R.id.position_me_button);
         simulateBtn = (Button)findViewById(R.id.simulateBtn);
 
-        //textviews
-       // fromTextView = (CustomAutoCompleteTextView)findViewById(R.id.fromText);
-        //toTextView = (CustomAutoCompleteTextView)findViewById(R.id.toText);
-        //fromTextView.setThreshold(4);
-        //toTextView.setThreshold(4);
+        //inits
+        waypointList = new ArrayList<>();
 
         //current Position
         currentPositionProvider = new SKCurrentPositionProvider(this);
@@ -394,6 +398,80 @@ public class MapActivity extends Activity implements SKMapSurfaceListener, SKCur
         });
     }
 
+
+    private void setOnClickListenerForPlus(View v)
+    {
+        v.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                textView = inflater.inflate(R.layout.pathview,null);
+
+                //increment count
+                textViewCount++;
+                textView.setId(textViewCount);
+                linearLayoutView.addView(textView);
+                //add the listener to this textView
+                CustomAutoCompleteTextView customAutoCompleteTextView = (CustomAutoCompleteTextView)linearLayoutView.findViewById(textViewCount).findViewById(R.id.waypointId);
+                customAutoCompleteTextView.setHint("Waypoint");
+                customAutoCompleteTextView.setThreshold(4);
+                setTextViewChangedListener(customAutoCompleteTextView);
+                setOnClickListenerForPlus(linearLayoutView.findViewById(textViewCount).findViewById(R.id.plusSignId));
+
+                //remove previous textView's plus sign
+                view.setVisibility(View.INVISIBLE);
+            }
+        });
+    }
+
+    private void setTextViewChangedListener(final CustomAutoCompleteTextView customAutoCompleteTextView)
+    {
+        customAutoCompleteTextView.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+                placesTask = new PlacesTask();
+                placesTask.execute(s.toString());
+                String[] from = new String[]{"description"};
+                int[] to = new int[]{android.R.id.text1};
+                if (list != null) {
+                    SimpleAdapter adapter = new SimpleAdapter(MapActivity.this, list, android.R.layout.simple_list_item_1, from, to);
+                    customAutoCompleteTextView.setAdapter(adapter);
+                }
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                //linearLayoutView.findViewById(0).setVisibility(View.GONE);
+                //make other textviews invisible
+                //Need to do
+                for(int i=0;i<=textViewCount;i++)
+                {
+                    if (!(linearLayoutView.findViewById(i).findViewById(R.id.waypointId).hasFocus()))
+                    {
+                        linearLayoutView.findViewById(i).setVisibility(View.GONE);
+                    }
+                }
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+
+            }
+        });
+
+
+        customAutoCompleteTextView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                //linearLayoutView.findViewById(0).setVisibility(View.VISIBLE);
+                //Need to do
+                for(int i=0;i<=textViewCount;i++)
+                {
+                        linearLayoutView.findViewById(i).setVisibility(View.VISIBLE);
+                }
+            }
+        });
+
+    }
     @Override
     public void onDestinationReached() {
         Toast.makeText(MapActivity.this, "Destination reached", Toast.LENGTH_SHORT).show();
@@ -660,6 +738,8 @@ public class MapActivity extends Activity implements SKMapSurfaceListener, SKCur
     @Override
     public void onRouteCalculationCompleted(SKRouteInfo routeInfo) {
         // select the current route (on which navigation will run)
+        List<SKCoordinate> points = new ArrayList<>();
+        points = SKRouteManager.getInstance().getCoordinatesForRoute(routeInfo.getRouteID());
         SKRouteManager.getInstance().setCurrentRouteByUniqueId(routeInfo.getRouteID());
         SKRouteManager.getInstance().zoomToRoute(1, 1, 8, 8, 8, 8);
     }
