@@ -21,7 +21,8 @@
                 android:layout_height="wrap_content"
                 android:id="@+id/simulateBtn"
                 android:text="Simulate"
-                android:layout_weight="0"/>
+                android:layout_weight="1"
+                android:visibility="gone"/>
         </LinearLayout>
     </LinearLayout>
     <FrameLayout

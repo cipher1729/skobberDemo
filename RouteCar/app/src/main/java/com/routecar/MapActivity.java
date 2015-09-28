@@ -43,6 +43,7 @@ import com.skobbler.ngx.map.SKMapSettings;
 import com.skobbler.ngx.map.SKMapSurfaceListener;
 import com.skobbler.ngx.map.SKMapSurfaceView;
 import com.skobbler.ngx.map.SKMapViewHolder;
+import com.skobbler.ngx.map.SKMapViewStyle;
 import com.skobbler.ngx.map.SKPOICluster;
 import com.skobbler.ngx.map.SKScreenPoint;
 import com.skobbler.ngx.navigation.SKAdvisorSettings;
@@ -70,7 +71,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 
-public class MapActivity extends Activity implements SKMapSurfaceListener, SKCurrentPositionListener, SKRouteListener, SKNavigationListener, SKToolsNavigationListener{
+public class MapActivity extends Activity implements SKMapSurfaceListener, SKCurrentPositionListener, SKNavigationListener, SKToolsNavigationListener{
 
 //app local variables go here
     private SKMapSurfaceView mapView;
@@ -340,7 +341,7 @@ public class MapActivity extends Activity implements SKMapSurfaceListener, SKCur
         });
 
 
-        simulateBtn.setOnClickListener(new View.OnClickListener() {
+       /* simulateBtn.setOnClickListener(new View.OnClickListener() {
 
             @Override
             public void onClick(View v) {
@@ -410,7 +411,7 @@ public class MapActivity extends Activity implements SKMapSurfaceListener, SKCur
 
                 }
             }
-        });
+        });*/
 
 
 
@@ -758,7 +759,7 @@ public class MapActivity extends Activity implements SKMapSurfaceListener, SKCur
         }
     }
 
-    @Override
+    /*@Override
     public void onRouteCalculationFailed(SKRoutingErrorCode skRoutingErrorCode) {
         shouldCacheTheNextRoute = false;
         Toast.makeText(MapActivity.this, getResources().getString(R.string.route_calculation_failed),
@@ -783,15 +784,15 @@ public class MapActivity extends Activity implements SKMapSurfaceListener, SKCur
     public void onOnlineRouteComputationHanging(int i) {
 
     }
-
-    @Override
+*/
+    /*@Override
     public void onRouteCalculationCompleted(SKRouteInfo routeInfo) {
         // select the current route (on which navigation will run)
         List<SKCoordinate> points = new ArrayList<>();
         points = SKRouteManager.getInstance().getCoordinatesForRoute(routeInfo.getRouteID());
         SKRouteManager.getInstance().setCurrentRouteByUniqueId(routeInfo.getRouteID());
         SKRouteManager.getInstance().zoomToRoute(1, 1, 8, 8, 8, 8);
-    }
+    }*/
 
     //HELPER
     /**
@@ -822,7 +823,12 @@ public class MapActivity extends Activity implements SKMapSurfaceListener, SKCur
         else configuration.setStartCoordinate(new SKCoordinate(-111.94373739999997,33.307632));
         if(destinationPoint.getLatitude()!=0.0f) configuration.setDestinationCoordinate(destinationPoint);
         else configuration.setDestinationCoordinate(new SKCoordinate(-104.9903,39.7392));
-        //clearRouteFromCache();
+
+        configuration.setAutomaticDayNight(false);
+        configuration.setDayStyle(new SKMapViewStyle(app.getMapResourcesDirPath() + "daystyle/",
+                "daystyle.json"));
+        configuration.setNightStyle(new SKMapViewStyle(app.getMapResourcesDirPath() + "nightstyle/",
+                "nightstyle.json"));
 
         //handle waypoints
         List<SKViaPoint> viaList = new ArrayList<>();
@@ -850,15 +856,15 @@ public class MapActivity extends Activity implements SKMapSurfaceListener, SKCur
 
     }
 
-    public void clearRouteFromCache() {
+    /*public void clearRouteFromCache() {
         SKRouteManager.getInstance().clearAllRoutesFromCache();
         cachedRouteId = null;
-    }
+    }*/
 
     /**
      * Setting the audio advices
      */
-    private void setAdvicesAndStartNavigation(MapAdvices currentMapAdvices) {
+    /*private void setAdvicesAndStartNavigation(MapAdvices currentMapAdvices) {
         final SKAdvisorSettings advisorSettings = new SKAdvisorSettings();
         advisorSettings.setLanguage(SKAdvisorSettings.SKAdvisorLanguage.LANGUAGE_EN);
         advisorSettings.setAdvisorConfigPath(app.getMapResourcesDirPath() + "/Advisor");
@@ -875,12 +881,12 @@ public class MapActivity extends Activity implements SKMapSurfaceListener, SKCur
         SKRouteManager.getInstance().setAudioAdvisorSettings(advisorSettings);
         launchNavigation();
 
-    }
+    }*/
 
     /**
      * Launches a navigation on the current route
      */
-    private void launchNavigation() {
+   /* private void launchNavigation() {
 
         // get navigation settings object
         SKNavigationSettings navigationSettings = new SKNavigationSettings();
@@ -902,7 +908,7 @@ public class MapActivity extends Activity implements SKMapSurfaceListener, SKCur
 
         navigationInProgress = true;
     }
-
+*/
 
     private void stopNavigation() {
         navigationInProgress = false;
