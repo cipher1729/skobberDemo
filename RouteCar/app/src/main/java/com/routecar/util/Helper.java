@@ -20,8 +20,17 @@ public class Helper {
         float latitude=0.0f,longitude=0.0f;
         try {
             List<Address> addresses = geocoder.getFromLocationName(location, 3);
-            latitude= (float)addresses.get(0).getLatitude();
-            longitude= (float)addresses.get(0).getLongitude();
+            if(addresses.size()!=0)
+            {
+                latitude= (float)addresses.get(0).getLatitude();
+                longitude= (float)addresses.get(0).getLongitude();
+            }
+            else
+            {
+                latitude=0.0f;
+                longitude=0.0f;
+            }
+
 
         } catch (IOException e) {
             e.printStackTrace();

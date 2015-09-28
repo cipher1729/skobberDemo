@@ -9,7 +9,9 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.speech.tts.TextToSpeech;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -61,6 +63,9 @@ import com.skobbler.ngx.routing.SKRouteManager;
 import com.skobbler.ngx.routing.SKRouteSettings;
 import com.skobbler.ngx.routing.SKViaPoint;
 import com.skobbler.ngx.sdktools.navigationui.SKToolsAdvicePlayer;
+import com.skobbler.ngx.sdktools.navigationui.SKToolsNavigationConfiguration;
+import com.skobbler.ngx.sdktools.navigationui.SKToolsNavigationListener;
+import com.skobbler.ngx.sdktools.navigationui.SKToolsNavigationManager;
 import com.skobbler.ngx.util.SKLogging;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -69,7 +74,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 
-public class MapActivity extends Activity implements SKMapSurfaceListener, SKCurrentPositionListener, SKRouteListener, SKNavigationListener{
+public class MapActivity extends Activity implements SKMapSurfaceListener, SKCurrentPositionListener, SKRouteListener, SKNavigationListener, SKToolsNavigationListener{
 
 //app local variables go here
     private SKMapSurfaceView mapView;
@@ -95,6 +100,33 @@ public class MapActivity extends Activity implements SKMapSurfaceListener, SKCur
     ViewGroup linearLayoutView;
     LayoutInflater inflater;
     View textView;
+
+    @Override
+    public void onNavigationStarted() {
+        navigationInProgress=true;
+        hideAllUI();
+    }
+
+    @Override
+    public void onNavigationEnded() {
+        navigationInProgress = false;
+        showAllUI();
+    }
+
+    @Override
+    public void onRouteCalculationStarted() {
+
+    }
+
+    @Override
+    public void onRouteCalculationCompleted() {
+
+    }
+
+    @Override
+    public void onRouteCalculationCanceled() {
+        navigationInProgress=false;
+    }
 
 
     private enum MapAdvices {
@@ -258,9 +290,9 @@ public class MapActivity extends Activity implements SKMapSurfaceListener, SKCur
                    // simulateBtn.setVisibility(View.GONE);
                     hideAllUI();
 
-                    SKRouteManager.getInstance().clearCurrentRoute();
+                    //SKRouteManager.getInstance().clearCurrentRoute();
                     launchRouteCalculation(new SKCoordinate(fromLong, fromLat), new SKCoordinate(toLong, toLat));
-                    new AlertDialog.Builder(MapActivity.this)
+                    /*new AlertDialog.Builder(MapActivity.this)
                             .setMessage("Choose the advice type")
                             .setCancelable(false)
                             .setPositiveButton("Scout audio", new DialogInterface.OnClickListener() {
@@ -302,7 +334,7 @@ public class MapActivity extends Activity implements SKMapSurfaceListener, SKCur
 
                                 }
                             })
-                            .show();
+                            .show();*/
 
                 }
             }
@@ -369,7 +401,7 @@ public class MapActivity extends Activity implements SKMapSurfaceListener, SKCur
                                                     }
                                                 });
                                     } else {
-                                        simulateBtn.setText("Stop simulation");
+                                       simulateBtn.setText("Stop simulation");
                                         setAdvicesAndStartNavigation(MapAdvices.TEXT_TO_SPEECH);
                                     }
 
@@ -776,14 +808,18 @@ public class MapActivity extends Activity implements SKMapSurfaceListener, SKCur
      * Launches a single route calculation
      */
     private void launchRouteCalculation(SKCoordinate startPoint, SKCoordinate destinationPoint) {
-        clearRouteFromCache();
-        // get a route object and populate it with the desired properties
-        SKRouteSettings route = new SKRouteSettings();
-
-
-        // set start and destination points
-        route.setStartCoordinate(new SKCoordinate(currentPosition.getLongitude(),currentPosition.getLatitude()));
-        route.setDestinationCoordinate(destinationPoint);
+        SKToolsNavigationConfiguration configuration = new SKToolsNavigationConfiguration();
+        configuration.setNavigationType(SKNavigationSettings.SKNavigationType.REAL);
+        configuration.setRouteType(SKRouteSettings.SKRouteMode.CAR_SHORTEST);
+        configuration.setDistanceUnitType(SKMaps.SKDistanceUnitType.DISTANCE_UNIT_KILOMETER_METERS);
+        configuration.setSpeedWarningThresholdInCity(20.0);
+        configuration.setSpeedWarningThresholdOutsideCity(20.0);
+        hideAllUI();
+        if(startPoint.getLatitude()!=0.0f)configuration.setStartCoordinate(startPoint);
+        else configuration.setStartCoordinate(new SKCoordinate(-111.94373739999997,33.307632));
+        if(destinationPoint.getLatitude()!=0.0f) configuration.setDestinationCoordinate(destinationPoint);
+        else configuration.setDestinationCoordinate(new SKCoordinate(-111.841250200,33.306160500));
+        //clearRouteFromCache();
 
         //handle waypoints
         List<SKViaPoint> viaList = new ArrayList<>();
@@ -793,7 +829,7 @@ public class MapActivity extends Activity implements SKMapSurfaceListener, SKCur
         {
             AutoCompleteTextView autoCompleteTextView= (AutoCompleteTextView)linearLayoutView.findViewById(i).findViewById(R.id.waypointId);
             String locationString = autoCompleteTextView.getText().toString();
-            SKCoordinate viaLocation= Helper.convertStringToCoord(locationString,context);
+            SKCoordinate viaLocation= Helper.convertStringToCoord(locationString, context);
             viaList.add(new SKViaPoint(viaPointNumber,viaLocation));
             SKAnnotation annotation = new SKAnnotation(0);
             annotation.setUniqueID(viaPointNumber++);
@@ -803,20 +839,12 @@ public class MapActivity extends Activity implements SKMapSurfaceListener, SKCur
             mapView.addAnnotation(annotation,SKAnimationSettings.ANIMATION_NONE);
 
         }
-        route.setViaPoints(viaList);
+        if(viaList.size()!=0) configuration.setViaPointCoordinateList(viaList);
+        SKToolsNavigationManager navigationManager = new SKToolsNavigationManager(this, R.id.rootForMapView);
+        navigationManager.setNavigationListener(this);
+        navigationManager.launchRouteCalculation(configuration, mapViewGroup);
 
 
-        // set the number of routes to be calculated
-        route.setNoOfRoutes(1);
-        // set the route mode
-        route.setRouteMode(SKRouteSettings.SKRouteMode.CAR_FASTEST);
-        // set whether the route should be shown on the map after it's computed
-        route.setRouteExposed(true);
-        // set the route listener to be notified of route calculation
-        // events
-        SKRouteManager.getInstance().setRouteListener(this);
-        // pass the route to the calculation routine
-        SKRouteManager.getInstance().calculateRoute(route);
     }
 
     public void clearRouteFromCache() {
