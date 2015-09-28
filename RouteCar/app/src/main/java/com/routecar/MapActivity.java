@@ -1,7 +1,8 @@
 /*
-Need to set simMode to false somewhere
-Test the skout mode
+Not needed: Need to set simMode to false somewhere
+Not needed: Test the skout mode
 Figure out way to include current location
+Cache previous locations
  */
 package com.routecar;
 
@@ -9,9 +10,7 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
-import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.speech.tts.TextToSpeech;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -24,16 +23,14 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
-import android.widget.LinearLayout;
 import android.widget.SimpleAdapter;
-import android.widget.Spinner;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.routecar.UI.CustomAutoCompleteTextView;
 import com.routecar.application.DemoApplication;
 import com.routecar.util.DemoUtils;
 import com.routecar.util.Helper;
+import com.routecar.util.MapCenter;
 import com.routecar.util.PlacesTask;
 import com.skobbler.ngx.SKCoordinate;
 import com.skobbler.ngx.SKMaps;
@@ -67,7 +64,6 @@ import com.skobbler.ngx.sdktools.navigationui.SKToolsNavigationConfiguration;
 import com.skobbler.ngx.sdktools.navigationui.SKToolsNavigationListener;
 import com.skobbler.ngx.sdktools.navigationui.SKToolsNavigationManager;
 import com.skobbler.ngx.util.SKLogging;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -80,7 +76,7 @@ public class MapActivity extends Activity implements SKMapSurfaceListener, SKCur
     private SKMapSurfaceView mapView;
     private SKMapViewHolder mapViewGroup;
     private SKCurrentPositionProvider currentPositionProvider;
-    private SKPosition currentPosition;
+    public static SKPosition currentPosition;
     DemoApplication app;
     AutoCompleteTextView fromTextView, toTextView;
     PlacesTask placesTask;
@@ -92,6 +88,7 @@ public class MapActivity extends Activity implements SKMapSurfaceListener, SKCur
     private static final String TAG = "MapActivity";
     List<CustomAutoCompleteTextView> waypointList;
     Context context;
+    SKToolsNavigationManager navigationManager;
 
     //IDs for textViews
     int textViewCount=0;
@@ -120,7 +117,7 @@ public class MapActivity extends Activity implements SKMapSurfaceListener, SKCur
 
     @Override
     public void onRouteCalculationCompleted() {
-
+       navigationInProgress=true;
     }
 
     @Override
@@ -183,6 +180,7 @@ public class MapActivity extends Activity implements SKMapSurfaceListener, SKCur
 
 
         context = MapActivity.this;
+
 
 
         addGUIListeners();
@@ -291,6 +289,7 @@ public class MapActivity extends Activity implements SKMapSurfaceListener, SKCur
                     hideAllUI();
 
                     //SKRouteManager.getInstance().clearCurrentRoute();
+                    navigateBtn.setText("Stop navigation");
                     launchRouteCalculation(new SKCoordinate(fromLong, fromLat), new SKCoordinate(toLong, toLat));
                     /*new AlertDialog.Builder(MapActivity.this)
                             .setMessage("Choose the advice type")
@@ -622,6 +621,10 @@ public class MapActivity extends Activity implements SKMapSurfaceListener, SKCur
         if (!navigationInProgress) {
             mapView.getMapSettings().setFollowerMode(SKMapSettings.SKMapFollowerMode.NONE);
         }
+
+        //map-centering thread
+        Thread mapCenterThread = new Thread(new MapCenter(mapView));
+        mapCenterThread.start();
     }
 
     @Override
@@ -818,7 +821,7 @@ public class MapActivity extends Activity implements SKMapSurfaceListener, SKCur
         if(startPoint.getLatitude()!=0.0f)configuration.setStartCoordinate(startPoint);
         else configuration.setStartCoordinate(new SKCoordinate(-111.94373739999997,33.307632));
         if(destinationPoint.getLatitude()!=0.0f) configuration.setDestinationCoordinate(destinationPoint);
-        else configuration.setDestinationCoordinate(new SKCoordinate(-111.841250200,33.306160500));
+        else configuration.setDestinationCoordinate(new SKCoordinate(-104.9903,39.7392));
         //clearRouteFromCache();
 
         //handle waypoints
@@ -840,7 +843,7 @@ public class MapActivity extends Activity implements SKMapSurfaceListener, SKCur
 
         }
         if(viaList.size()!=0) configuration.setViaPointCoordinateList(viaList);
-        SKToolsNavigationManager navigationManager = new SKToolsNavigationManager(this, R.id.rootForMapView);
+        navigationManager = new SKToolsNavigationManager(this, R.id.map_layout_root);
         navigationManager.setNavigationListener(this);
         navigationManager.launchRouteCalculation(configuration, mapViewGroup);
 
@@ -883,7 +886,7 @@ public class MapActivity extends Activity implements SKMapSurfaceListener, SKCur
         SKNavigationSettings navigationSettings = new SKNavigationSettings();
         // set the desired navigation settings
         if(simMode== false) navigationSettings.setNavigationType(SKNavigationSettings.SKNavigationType.REAL);
-        else navigationSettings.setNavigationType(SKNavigationSettings.SKNavigationType.SIMULATION);
+        else navigationSettings.setNavigationType(SKNavigationSettings.SKNavigationType.REAL);
         navigationSettings.setPositionerVerticalAlignment(-0.25f);
         navigationSettings.setShowRealGPSPositions(false);
         // get the navigation manager object
@@ -907,7 +910,7 @@ public class MapActivity extends Activity implements SKMapSurfaceListener, SKCur
             textToSpeechEngine.stop();
         }
 
-        SKNavigationManager.getInstance().stopNavigation();
+        navigationManager.stopNavigation();
         if(simMode==false )navigateBtn.setText("Navigate");
         else simulateBtn.setText("Simulate");
     }

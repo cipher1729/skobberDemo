@@ -4,7 +4,7 @@
     <modules>
       <module fileurl="file://$PROJECT_DIR$/RouteCar.iml" filepath="$PROJECT_DIR$/RouteCar.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
-      <module fileurl="file://$PROJECT_DIR$/sdktools-release/sdktools-release.iml" filepath="$PROJECT_DIR$/sdktools-release/sdktools-release.iml" />
+      <module fileurl="file://$PROJECT_DIR$/sdktools/sdktools.iml" filepath="$PROJECT_DIR$/sdktools/sdktools.iml" />
     </modules>
   </component>
 </project>
