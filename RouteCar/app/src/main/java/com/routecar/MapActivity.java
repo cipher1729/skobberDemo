@@ -102,7 +102,7 @@ public class MapActivity extends Activity implements SKMapSurfaceListener, SKCur
     ViewGroup linearLayoutView;
     LayoutInflater inflater;
     View textView;
-
+    boolean annotationFlag= true;
     @Override
     public void onNavigationStarted() {
         navigationInProgress=true;
@@ -151,8 +151,30 @@ public class MapActivity extends Activity implements SKMapSurfaceListener, SKCur
                 bestRoute=i;
             }
         }
+        int markerId=0;
 
+        if(annotationFlag) {
+            for (int i = 0; i < boxListForRoutes.get(bestRoute).size(); i++) {
 
+                //put annotations on corner points of boxes
+                SKAnnotation annotation = new SKAnnotation(0);
+                annotation.setUniqueID(markerId++);
+                annotation.setAnnotationType(SKAnnotation.SK_ANNOTATION_TYPE_MARKER);
+                SKCoordinate skCoordinate1 = new SKCoordinate(boxListForRoutes.get(bestRoute).get(i).getNorthEast().lng(), boxListForRoutes.get(bestRoute).get(i).getNorthEast().lat());
+                SKCoordinate skCoordinate2 = new SKCoordinate(boxListForRoutes.get(bestRoute).get(i).getSouthWest().lng(), boxListForRoutes.get(bestRoute).get(i).getSouthWest().lat());
+                annotation.setLocation(skCoordinate1);
+                annotation.setMininumZoomLevel(5);
+                mapView.addAnnotation(annotation, SKAnimationSettings.ANIMATION_NONE);
+
+                SKAnnotation annotation2 = new SKAnnotation(0);
+                annotation2.setUniqueID(markerId++);
+                annotation2.setAnnotationType(SKAnnotation.SK_ANNOTATION_TYPE_MARKER);
+                annotation2.setLocation(skCoordinate2);
+                annotation2.setMininumZoomLevel(5);
+                mapView.addAnnotation(annotation2, SKAnimationSettings.ANIMATION_NONE);
+
+            }
+        }
 
         bestRoute=0;
     }
