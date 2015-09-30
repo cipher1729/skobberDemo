@@ -16,6 +16,7 @@ import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.Toast;
 import com.skobbler.ngx.R;
+import com.skobbler.ngx.SKCoordinate;
 import com.skobbler.ngx.map.SKAnnotation;
 import com.skobbler.ngx.map.SKCoordinateRegion;
 import com.skobbler.ngx.map.SKMapCustomPOI;
@@ -716,6 +717,10 @@ public class SKToolsLogicManager implements SKMapSurfaceListener, SKNavigationLi
         SKToolsMapOperationsManager.getInstance().switchMapDisplayMode(newDisplayMode);
     }
 
+    public List<SKRouteInfo> getRoutes()
+    {
+        return skRouteInfoList;
+    }
     @Override
     public void onActionPan() {
         switchToPanningMode();
@@ -860,6 +865,7 @@ public class SKToolsLogicManager implements SKMapSurfaceListener, SKNavigationLi
         }
     }
 
+
     /**
      * play sound when the speed is exceeded
      *
@@ -882,6 +888,8 @@ public class SKToolsLogicManager implements SKMapSurfaceListener, SKNavigationLi
             });
         }
     }
+
+
 
     @Override
     public void onSpeedExceededWithInstruction(String instruction, boolean speedExceeded) {

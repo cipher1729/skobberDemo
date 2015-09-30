@@ -2,6 +2,9 @@ package com.skobbler.ngx.sdktools.navigationui;
 
 import android.app.Activity;
 import com.skobbler.ngx.map.SKMapViewHolder;
+import com.skobbler.ngx.routing.SKRouteInfo;
+
+import java.util.List;
 
 
 public class SKToolsNavigationManager {
@@ -65,5 +68,10 @@ public class SKToolsNavigationManager {
      */
     public void setNavigationListener(SKToolsNavigationListener navigationListener) {
         SKToolsLogicManager.getInstance().setNavigationListener(navigationListener);
+    }
+
+    public List<SKRouteInfo> getRoutesFromLogicManager()
+    {
+        return SKToolsLogicManager.getInstance().getRoutes();
     }
 }

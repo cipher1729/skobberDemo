@@ -61,6 +61,7 @@ import com.skobbler.ngx.routing.SKRouteManager;
 import com.skobbler.ngx.routing.SKRouteSettings;
 import com.skobbler.ngx.routing.SKViaPoint;
 import com.skobbler.ngx.sdktools.navigationui.SKToolsAdvicePlayer;
+import com.skobbler.ngx.sdktools.navigationui.SKToolsLogicManager;
 import com.skobbler.ngx.sdktools.navigationui.SKToolsNavigationConfiguration;
 import com.skobbler.ngx.sdktools.navigationui.SKToolsNavigationListener;
 import com.skobbler.ngx.sdktools.navigationui.SKToolsNavigationManager;
@@ -91,6 +92,9 @@ public class MapActivity extends Activity implements SKMapSurfaceListener, SKCur
     Context context;
     SKToolsNavigationManager navigationManager;
 
+   //List containing all coordinates in route
+    public List<SKRouteInfo> pointsList;
+
     //IDs for textViews
     int textViewCount=0;
 
@@ -119,6 +123,38 @@ public class MapActivity extends Activity implements SKMapSurfaceListener, SKCur
     @Override
     public void onRouteCalculationCompleted() {
        navigationInProgress=true;
+
+        //get routeinfo from logicmanager
+        pointsList = SKToolsLogicManager.getInstance().getRoutes();
+        List< List<RouteBoxer.LatLngBounds> > boxListForRoutes = new ArrayList<>();
+        for(int i=0;i<pointsList.size();i++)
+        {
+            List<SKCoordinate> gpsListForRoute = SKRouteManager.getInstance().getCoordinatesForRoute(pointsList.get(i).getRouteID());
+            List<RouteBoxer.LatLng> latLngList = new ArrayList<>();
+            RouteBoxer routeBoxer = new RouteBoxer();
+            for(int j=0;j<gpsListForRoute.size();j+=50)
+            {
+                RouteBoxer.LatLng latlng = new RouteBoxer().new LatLng(gpsListForRoute.get(j).getLatitude(),gpsListForRoute.get(j).getLongitude());
+                latLngList.add(latlng);
+            }
+            List<RouteBoxer.LatLngBounds> latLngBounds= routeBoxer.box(latLngList, 20);
+            boxListForRoutes.add(latLngBounds);
+        }
+        int minBoxes= boxListForRoutes.get(0).size();
+        int bestRoute=0;
+        for(int i=0;i<boxListForRoutes.size();i++)
+        {
+            //check if no of boxes in each route is less than a global minimum and store that route index
+            if(boxListForRoutes.get(i).size() < minBoxes)
+            {
+                minBoxes = boxListForRoutes.get(i).size();
+                bestRoute=i;
+            }
+        }
+
+
+
+        bestRoute=0;
     }
 
     @Override
